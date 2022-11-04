@@ -26,7 +26,10 @@ import java.awt.geom.AffineTransform;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.HashMap;
+import org.apache.fontbox.cmap.CMap;
 
 import org.apache.fontbox.afm.FontMetric;
 
@@ -71,6 +74,19 @@ public abstract class PDSimpleFont extends PDFont
      */
     private static final Log LOG = LogFactory.getLog(PDSimpleFont.class);
     
+// LRU map of 20 CMap object loaded from local resources.
+    // Avoids a lock on the class loader.
+    @SuppressWarnings("serial")
+    private static Map<String, CMapValue> localResource =
+            new LinkedHashMap<String, CMapValue>()
+            {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, CMapValue> eldest)
+                {
+                    return size() > 20;
+                }
+            };
+
     /**
      * Constructor.
      */
@@ -421,31 +437,19 @@ public abstract class PDSimpleFont extends PDFont
 
         if (cmap == null && cmapName != null) 
         {
-            InputStream cmapStream = null;
+            // Revert the logging message changes in 1554645, PDFBOX-940
+            String resourceName = resourceRootCMAP + cmapName;
             try 
             {
-                // look for a predefined CMap with the given name
-                cmapStream = ResourceLoader.loadResource(resourceRootCMAP + cmapName);
-                if (cmapStream != null)
+                cmap = loadCmap( resourceRootCMAP, resourceName );
+                if( cmap == null && encodingName == null)
                 {
-                    cmap = parseCmap(resourceRootCMAP, cmapStream);
-                    if (cmap == null && encodingName == null)
-                    {
-                        LOG.error("Error: Could not parse predefined CMAP file for '" + cmapName + "'");
-                    }
-                }
-                else
-                {
-                    LOG.debug("Debug: '" + cmapName + "' isn't a predefined map, most likely it's embedded in the pdf itself.");
+                    LOG.error("Error: Could not parse predefined CMAP file for '" + cmapName + "'" );
                 }
             }
             catch(IOException exception) 
             {
                 LOG.error("Error: Could not find predefined CMAP file for '" + cmapName + "'" );
-            }
-            finally
-            {
-                IOUtils.closeQuietly(cmapStream);
             }
         }
     }
@@ -481,7 +485,7 @@ public abstract class PDSimpleFont extends PDFont
                     String resourceName = resourceRootCMAP + cmapName;
                     try 
                     {
-                        toUnicodeCmap = parseCmap( resourceRootCMAP, ResourceLoader.loadResource( resourceName ));
+                        toUnicodeCmap = loadCmap( resourceRootCMAP, resourceName );
                     }
                     catch(IOException exception) 
                     {
@@ -493,6 +497,40 @@ public abstract class PDSimpleFont extends PDFont
                     }
                 }
             }
+        }
+    }
+        
+    /**
+     * Loads the cached CMap from localResource if available rather than calling
+     * loadResource each time
+     * 
+     * @param root
+     * @param resourceName
+     * @return the cached or loaded CMap
+     * @throws IOException
+     */
+    private CMap loadCmap(String root, String resourceName) throws IOException
+    {
+        synchronized(localResource)
+        {
+            CMapValue value = localResource.get(resourceName);
+            if (value != null)
+            {
+                return value.cmap;
+            }
+            
+            CMap cmap = parseCmap(root, ResourceLoader.loadResource(resourceName));
+            localResource.put(resourceName, new CMapValue(cmap));
+            return cmap;
+        }
+    }
+    
+    private class CMapValue
+    {
+        CMap cmap;
+        CMapValue(CMap cmap)
+        {
+            this.cmap = cmap;
         }
     }
     

@@ -62,6 +62,8 @@ public class PDFParser extends BaseParser
     private static final String FDF_HEADER = "%FDF-";
     
     protected boolean isFDFDocment = false;
+
+    private static final String OxFFFFFFFF = Long.toString(0xFFFFFFFFL);
     
     private static final String PDF_DEFAULT_VERSION = "1.4";
     private static final String FDF_DEFAULT_VERSION = "1.0";
@@ -834,6 +836,15 @@ public class PDFParser extends BaseParser
                 {
                     LOG.warn("invalid xref line: " + currentLine);
                     break;
+                }
+                // Handle a not so uncommon xref table encoding error, by overriding the
+                // entryType as free ('f') when the original int offset is -1 (0xFFFFFFFF)
+                // and has been encoded in error as 4294967295. Google search returned
+                // over 7000 hits.
+                if (OxFFFFFFFF.equals(splitString[0]))
+                {
+                    splitString[splitString.length-1] = "f";
+                    splitString[2] = "f";
                 }
                 /* This supports the corrupt table as reported in
                  * PDFBOX-474 (XXXX XXX XX n) */

@@ -175,10 +175,10 @@
             description="Compile Java source files">
         <!-- required encoding flag to be able to build using ibm-jdk on redhat ES-->
         <javac srcdir="${pdfbox.src.dir}" destdir="${pdfbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="pdfbox.build.classpath" encoding="ISO-8859-1"/>
         <javac srcdir="${pdfbox.test.dir}" destdir="${pdfbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="pdfbox.build.classpath" encoding="ISO-8859-1"/>
     </target>
 
@@ -186,10 +186,10 @@
             description="Compile Java source files">
         <!-- required encoding flag to be able to build using ibm-jdk on redhat ES-->
         <javac srcdir="${fontbox.src.dir}" destdir="${fontbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="fontbox.build.classpath" encoding="ISO-8859-1"/>
         <javac srcdir="${fontbox.test.dir}" destdir="${fontbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="fontbox.build.classpath" encoding="ISO-8859-1"/>
     </target>
 
@@ -197,10 +197,10 @@
             description="Compile Java source files">
         <!-- required encoding flag to be able to build using ibm-jdk on redhat ES-->
         <javac srcdir="${jempbox.src.dir}" destdir="${jempbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="jempbox.build.classpath" encoding="ISO-8859-1"/>
         <javac srcdir="${jempbox.test.dir}" destdir="${jempbox.dest.dir}"
-               target="1.5" source="1.5" debug="on" deprecation="on"
+               target="1.7" source="1.7" debug="on" deprecation="on"
                classpathref="jempbox.build.classpath" encoding="ISO-8859-1"/>
     </target>
 
